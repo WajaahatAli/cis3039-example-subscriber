@@ -68,7 +68,7 @@ To recieve actual events published via Event Grid, the Functions app must be dep
 1. Create a resource group (if you don't have one):
 
 ```bash
-az group create --name <resource-group-name> --location <location>
+az group create --name wa-eventsub-cr07-rg --location francecentral
 ```
 
 Remember to follow our naming convention, e.g. `shopping-lab-ab47-rg`
@@ -77,9 +77,9 @@ Remember to follow our naming convention, e.g. `shopping-lab-ab47-rg`
 
 ```bash
 az storage account create \
-  --name <storage-account-name> \
-  --resource-group <resource-group-name> \
-  --location <location> \
+  --name waeventsubcr07sa\
+  --resource-group wa-eventsub-cr07-rg \
+  --location francecentral \
   --sku Standard_LRS
 ```
 
@@ -89,10 +89,10 @@ Remember storage accounts must just be letters and numbers, e.g. `shoppinglabab4
 
 ```bash
 az functionapp create \
-  --name <function-app-name> \
-  --resource-group <resource-group-name> \
-  --storage-account <storage-account-name> \
-  --consumption-plan-location <location> \
+  --name wa-eventsub-cr07-fa \
+  --resource-group wa-eventsub-cr07-rg \
+  --storage-account waeventsubcr07sa \
+  --consumption-plan-location francecentral \
   --runtime node \
   --functions-version 4
 ```
@@ -101,7 +101,7 @@ az functionapp create \
 
 ```bash
 npm run build
-func azure functionapp publish <function-app-name>
+func azure functionapp publish wa-eventsub-cr07-fa
 ```
 
 ### Create Event Grid Subscription
@@ -112,8 +112,8 @@ func azure functionapp publish <function-app-name>
 
 ```bash
 az eventgrid topic show \
-  --name <your-topic-name> \
-  --resource-group <resource-group-name> \
+  --name wa-eventpub-cr07-products-topic \
+  --resource-group wa-eventpub-cr07-rg \
   --query "id" \
   -o tsv
 ```
@@ -122,9 +122,9 @@ az eventgrid topic show \
 
 ```bash
 az functionapp function show \
-  --name <function-app-name> \
-  --resource-group <resource-group-name> \
-  --function-name "productUpdatedEventGrid" \
+  --name wa-eventsub-cr07-fa \
+  --resource-group wa-eventsub-cr07-rg \
+  --function-name productUpdatedEventGrid \
   --query "id" \
   -o tsv
 ```
@@ -135,10 +135,10 @@ Function name is the name of the Event Grid Triggered function within your Azure
 
 ```bash
 az eventgrid event-subscription create \
-  --name <subscription-name> \
-  --source-resource-id "<topic-resource-id>" \
+  --name product-updates-sub \
+  --source-resource-id "/subscriptions/.../topics/wa-eventpub-cr07-products-topic \
   --endpoint-type azurefunction \
-  --endpoint "<function-resource-id>"
+  --endpoint "/subscriptions/.../functions/productUpdatedEventGrid"
 ```
 
 The resource ids come from steps 1 and 2. Follow our naming convention for the subscription name, e.g. `shopping-lab-ab47-products-sub`
@@ -152,7 +152,7 @@ The Function app is running in the cloud. It will recieve event notifications vi
 View live logs from your deployed function:
 
 ```bash
-func azure functionapp logstream <function-app-name>
+func azure functionapp logstream wa-eventsub-cr07-fa
 ```
 
 Or use Azure CLI:
